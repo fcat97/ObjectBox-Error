@@ -15,5 +15,3 @@ buildscript {
     // ...
 }
 ```
-
-***This repository also has a brach for working source.***
