@@ -1,0 +1,119 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+    id "dagger.hilt.android.plugin"
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.21'
+    id 'io.objectbox'
+}
+
+android {
+    compileSdk 32
+
+    // auto increment app version
+    // https://stackoverflow.com/a/37740142/8229399
+    // answer by: Ahmad Aghazadeh
+
+    def _versionCode = 0
+    def _major = 0
+    def _minor = 0
+    def _patch = 0
+
+    def versionPropsFile = file('version.properties')
+    if (versionPropsFile.canRead()) {
+        Properties versionProps = new Properties()
+
+        versionProps.load(new FileInputStream(versionPropsFile))
+
+        _patch = versionProps['PATCH'].toInteger() + 1
+        _major = versionProps['MAJOR'].toInteger()
+        _minor = versionProps['MINOR'].toInteger()
+        _versionCode = versionProps['VERSION_CODE'].toInteger() + 1
+        if(_patch == 100)
+        {
+            _patch = 0
+            _minor =_minor + 1
+        }
+        if(_minor == 10){
+            _minor = 0
+            _major =_major + 1
+        }
+
+        versionProps['MAJOR'] = _major.toString()
+        versionProps['MINOR'] = _minor.toString()
+        versionProps['PATCH'] = _patch.toString()
+        versionProps['VERSION_CODE']= _versionCode.toString()
+        versionProps.store(versionPropsFile.newWriter(), null)
+    } else {
+        throw new GradleException("Could not read version.properties!")
+    }
+
+    def _versionName = "${_major}.${_minor}.${if (_patch < 10) "0$_patch" else _patch}"
+
+    defaultConfig {
+        applicationId "com.example.objectboX"
+        minSdk 21
+        targetSdk 32
+        versionCode _versionCode
+        versionName _versionName
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_version
+    }
+}
+
+dependencies {
+
+    implementation "androidx.core:core-ktx:1.7.0"
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.6.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    // compose libraries
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.material:material:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    implementation 'androidx.activity:activity-compose:1.6.0-alpha03'
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+
+    // hilt library
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
+
+    def lifecycle_version = '2.4.1'
+    // ViewModel
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+
+    // activity, fragment coroutine
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
+
+    // LiveData
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+}
